@@ -1,0 +1,43 @@
+# Workflow:
+
+#     1. Upload the file
+#     2. Read the file
+#     3. Read the wavelength that we are looking for
+#     4. Calculate the Angstrom Exponent
+#     5. Calculate the Turbidity Coefficient
+#     4. Interpolate AOD to wavelength using the least squares regression fit from NASA
+#     5. Print Interpolation value
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+file = input("Enter file path:")
+
+df = pd.read_csv(file)
+
+tau = df['AOD']  # AOD values corresponding to their respective wavelengths
+wavelength = df['Wavelength']  # Wavelengths
+N = len(wavelength)  # Number of wavelengths on range
+wavelength_desired = float(input('Enter wavelength desired: '))
+
+# Calculation of the Angstrom exponent
+
+a = (N * (np.sum(np.log(tau) * np.log(wavelength))) - np.sum(np.log(wavelength)) * np.sum(np.log(tau))) / (
+        N * np.sum(np.log(wavelength) ** 2) - (np.sum(np.log(wavelength))) ** 2)
+
+# Turbidity Coefficient calculation
+
+b = (np.sum(np.log(wavelength) ** 2) * np.sum(np.log(tau)) - np.sum(np.log(tau) * np.log(wavelength)) * np.sum(
+    np.log(wavelength))) / (N * np.sum(np.log(wavelength) ** 2) - (np.sum(np.log(wavelength))) ** 2)
+
+AOD = np.exp(b + a * np.log(wavelength_desired))
+
+print(AOD)
+
+plt.figure(figsize=(6, 3))
+plt.plot(wavelength, tau)
+plt.title('Average AOD vs Wavelength')
+plt.xlabel("Wavelength (nm)")
+plt.ylabel("AOD")
+plt.show()
